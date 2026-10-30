@@ -1,0 +1,12 @@
+string name
+string can_bus
+uint8 can_id
+string motor_type
+float64 position
+float64 velocity
+float64 effort
+float64 temperature
+float64 voltage
+uint32 error_code
+bool online
+bool enabled
