@@ -1,22 +1,64 @@
 # ros_control 部署框架
 
 用 `ros2_control` 从 0 到 1 实现人形机器人部署栈。
-本目录是**空的骨架 + 契约**，代码由你按 `docs/IMPLEMENTATION.md` 的检查点一步步写，我只做讲解和 review。
+本目录是空的骨架 + 契约，代码按 `docs/IMPLEMENTATION.md` 的检查点写。
 
-> 参考项目（行为基准，可读不可抄）：`../develop_ws`
-> 其中 `src/driver` 是旧的 joint_node/imu/joy 实现，`src/infer` 是旧推理节点。
+> 行为参考：`../develop_ws`（旧 joint_node / infer / imu / joy 实现）
 
-## 目标栈
+## ros2_control 自带什么，我们要写什么
+
+这是最容易搞混的地方：**ros2_control 只提供"框架 + 控制循环 + 接口抽象"，
+不提供你的电机协议、运动学、策略和消息。**
+
+### 已经自带（apt 装好，直接用，别重写）
+
+| 能力 | 组件 | 说明 |
+|---|---|---|
+| 控制主循环 | `controller_manager` / `ros2_control_node` | 固定频率调用所有控制器的 `update()`，再调硬件的 `read()`/`write()` |
+| 硬件抽象 | `hardware_interface::SystemInterface` | 规定 `on_init/on_configure/on_activate/read/write` 这套生命周期 |
+| 接口句柄 | `hardware_interface::StateInterface` / `CommandInterface` | 状态/命令的 `double*` 绑定与导出 |
+| 控制器基类 | `controller_interface::ControllerInterface` | 规定 `update()`、接口配置、生命周期 |
+| 状态发布 | `joint_state_broadcaster` | 订阅硬件 state 接口，发 `/joint_states` |
+| 控制器加载/切换 | `spawner` / `unspawner`、`ros2 control` CLI | 运行时加载、激活、切换控制器 |
+| 标准控制器 | `joint_trajectory_controller`、`forward_command_controller`、`effort_controllers`、`velocity_controllers`、`position_controllers`、`pid_controller` | 常规关节控制够用 |
+| 无硬件仿真 | `mock_components/GenericSystem` | 位置/速度/力矩三种接口可直接模拟 |
+| 实时工具 | `realtime_tools` | `RealtimeBuffer`、`RealtimePublisher`，避免锁 |
+| 模型发布 | `robot_state_publisher` | 读 URDF 发 TF |
+| 启动编排 | `launch` / `launch_ros` | 组合节点与参数 |
+
+### 必须自己写（ros2_control 没有）
+
+| 要写的东西 | 落在哪个包 | 为什么不能直接用现成的 |
+|---|---|---|
+| MIT 关节命令消息（pos/vel/effort/kp/kd 一起下发） | `ros_control_msgs` | 标准只有 `JointState`/`JointTrajectory`，没有"变刚度 + 前馈力矩"的消息 |
+| 电机遥测、推理状态、模式切换/置零服务 | `ros_control_msgs` | 全是本项目语义 |
+| CAN 收发 + 22 个电机协议 + 14 关节映射 + 下肢 3×3 运动学 + 安全回退 | `ros_control_hardware` | `SystemInterface` 只是空壳，`read/write` 里做什么完全由你决定 |
+| 置零服务、电机遥测发布 | `ros_control_hardware`（admin 部分） | 依赖驱动实例，必须和硬件同进程 |
+| 无 CAN 仿真（可选） | `ros_control_hardware`（MockSystem） | `GenericSystem` 不导出自定义接口 `kp/kd`，我们的控制器会加载失败 |
+| **MIT 控制器**（五接口 + 超时阻尼） | `ros_control_controllers` | 见下方"为什么必须自己写控制器" |
+| 机器人模型 | `ros_control_description` | URDF 是你的机器人，`robot_state_publisher` 只负责发布 |
+| ONNX 推理 + 255 维观测 + 模式状态机 + 看门狗 | `ros_control_inference` | 策略相关，无任何现成组件 |
+| IMU 串口协议解析 | `ros_control_imu` | `imu_sensor_broadcaster` 只负责发，不含 Xsens/Yesense 协议 |
+| 手柄按键映射（LB/A/B/X） | `ros_control_joy` | `joy` 只把 `/dev/input` 转成 `sensor_msgs/Joy` |
+| 启动编排 + 参数 | `ros_control_bringup` | launch 组合方式是本项目约定 |
+| 对外 API | `ros_control_sdk` / `ros_control_sdk_py` | 无标准 SDK |
+
+### 为什么必须自己写 MIT 控制器
+
+现成控制器都不满足 RL 部署：
+
+- `forward_command_controller`：只转发**一个**接口（position 或 effort），没有 kp/kd。
+- `effort_controllers/*`：只有 effort，没有刚度/阻尼。
+- `joint_trajectory_controller`：轨迹插值 + PID，面向慢速轨迹，不适合 200Hz 变刚度流式指令。
+
+RL 策略每 5ms 下发一次 `(q_target, kp, kd, τ_ff)`，所以必须写一个把五个命令接口一起写、
+并在超时后自动降为阻尼的控制器。
+
+### 一句话分工
 
 ```
-                    ┌──────────── controller_manager @200Hz ────────────┐
- /joint_states ◄────┤ joint_state_broadcaster                           │
-                    │ mit_joint_controller ◄── ~/commands ◄──────────────┼── infer_node (ONNX)
-                    │        │ position/velocity/effort/kp/kd           │
-                    │        ▼                                          │
-                    │ <robot_hardware> (SystemInterface) ──► CAN0/1/2   │
-                    └───────────────────────────────────────────────────┘
- imu_node ──► /imu ──► infer_node        joy_node ──► /cmd_vel, /control_mode
+ros2_control 给你：循环、生命周期、接口、状态发布、控制器加载
+你给 ros2_control：硬件 read/write 的实现、控制器逻辑、机器人模型、消息、策略、SDK
 ```
 
 ## 包结构
@@ -24,7 +66,7 @@
 ```
 src/
 ├── ros_control_msgs         消息/服务
-├── ros_control_hardware     ros2_control SystemInterface（CAN + 电机 + 运动学）
+├── ros_control_hardware     SystemInterface（CAN + 电机 + 运动学）+ Mock
 ├── ros_control_controllers  mit_joint_controller
 ├── ros_control_description  URDF/xacro + <ros2_control> 标签
 ├── ros_control_inference    ONNX 推理节点
@@ -35,31 +77,27 @@ src/
 └── ros_control_sdk_py       Python SDK
 ```
 
-## 从哪开始
+## 实现顺序
 
-1. 读 `docs/ARCHITECTURE.md`：数据流、接口契约、安全分层。
-2. 读 `docs/PACKAGE_CONTRACTS.md`：每个包要建哪些文件、参数、验收命令。
-3. 按 `docs/IMPLEMENTATION.md` 的 9 个检查点写，**每个检查点先编译通过再往下**。
+```
+① msgs → ② hardware 只读 → ③ hardware 写 → ④ controller
+       → ⑤ URDF/bringup+mock → ⑥ inference → ⑦ imu/joy → ⑧ SDK
+```
+
+每步先 `colcon build` 通过，再进下一步。细节见 `docs/IMPLEMENTATION.md`。
 
 ## 约定（先定死，少返工）
 
 ### 受控关节（14，策略顺序）
 
 ```
-left_shoulder_pitch_joint
-right_shoulder_pitch_joint
-right_hip_yaw_joint
-left_hip_yaw_joint
-left_hip_roll_joint
-left_hip_pitch_joint
-left_knee_joint
-left_ankle_pitch_joint
-left_ankle_roll_joint
-right_hip_roll_joint
-right_hip_pitch_joint
-right_knee_joint
-right_ankle_pitch_joint
-right_ankle_roll_joint
+left_shoulder_pitch_joint   right_shoulder_pitch_joint
+right_hip_yaw_joint         left_hip_yaw_joint
+left_hip_roll_joint         left_hip_pitch_joint
+left_knee_joint             left_ankle_pitch_joint
+left_ankle_roll_joint       right_hip_roll_joint
+right_hip_pitch_joint       right_knee_joint
+right_ankle_pitch_joint     right_ankle_roll_joint
 ```
 
 ### 控制模式
@@ -71,13 +109,12 @@ right_ankle_roll_joint
 | 2 | INFERENCE | 策略闭环 |
 | 3 | DAMPING | kp=0，只留 kd |
 
-### 命名
+### 话题
 
-- 硬件组件：`LocamotionSystem`（URDF `<ros2_control name=...>`）
-- 命令话题：`/mit_joint_controller/commands`（`ros_control_msgs/MitJointCommand`）
-- 状态话题：`/joint_states`（`sensor_msgs/JointState`，broadcaster 发）
-- 速度命令：`/cmd_vel`（`geometry_msgs/Twist`）
-- 模式话题：`/control_mode`（`std_msgs/UInt8`）
+- `/joint_states`（`sensor_msgs/JointState`，broadcaster 发）
+- `/mit_joint_controller/commands`（`ros_control_msgs/MitJointCommand`）
+- `/cmd_vel`（`geometry_msgs/Twist`）、`/control_mode`（`std_msgs/UInt8`）
+- `/imu`（`sensor_msgs/Imu`）
 
 ## 环境
 
@@ -87,4 +124,4 @@ colcon build --symlink-install --packages-select <包名>
 source install/setup.bash
 ```
 
-`scripts/build.sh` 是封装；`scripts/env.sh` 给非交互 shell 用。
+`scripts/build.sh` 是封装，`scripts/env.sh` 给非交互 shell 用。
