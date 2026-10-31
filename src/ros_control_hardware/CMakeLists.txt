@@ -14,6 +14,9 @@ find_package(ros_control_msgs REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   src/system_hardware.cpp
+  #src/driver/can_transport.cpp
+  #src/driver/loopback_transport.cpp
+  #src/driver/yiyou_protocol.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
@@ -39,6 +42,17 @@ install(TARGETS ${PROJECT_NAME}
   RUNTIME DESTINATION bin)
 install(FILES ros_control_hardware_plugins.xml
   DESTINATION share/${PROJECT_NAME})
+
+add_executable(driver_test
+  test/driver_test.cpp
+  src/driver/transport/loopback_transport.cpp
+  src/driver/protocol/fake_protocol.cpp
+)
+
+
+target_include_directories(driver_test PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
 
 ament_export_targets(export_${PROJECT_NAME} HAS_LIBRARY_TARGET)
 ament_export_dependencies(rclcpp hardware_interface pluginlib ros_control_msgs)

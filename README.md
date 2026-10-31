@@ -1,7 +1,7 @@
 # ros_control 部署框架
 
 用 `ros2_control` 从 0 到 1 实现人形机器人部署栈。
-本目录是空的骨架 + 契约，代码按 `docs/IMPLEMENTATION.md` 的检查点写。
+本目录是正在实现中的工作区，进度见下方「实现进度」，契约见 `docs/`。
 
 > 行为参考：`../develop_ws`（旧 joint_node / infer / imu / joy 实现）
 
@@ -85,6 +85,74 @@ src/
 ```
 
 每步先 `colcon build` 通过，再进下一步。细节见 `docs/IMPLEMENTATION.md`。
+
+## 实现进度
+
+| 阶段 | 内容 | 状态 |
+|---|---|---|
+| 0 | 环境、工作区、colcon/VS Code | ✅ |
+| 1 | `ros_control_msgs`：4 msg + 2 srv | ✅ |
+| 2.1 | `ros_control_hardware`：插件骨架、5 command / 3 state 接口 | ✅ |
+| 2.2 | 驱动层：接口 + 回环传输 + 单位换算 | ✅ |
+| 2.2b | 假电机 + `driver_test` | ✅ |
+| 2.3 | ENCOS / 意优真实协议 + 协议工厂 | ⬜ |
+| 2.4 | SocketCAN `CanTransport` | ⬜ |
+| 2.5 | `SystemHardware::read/write` 接入驱动层 | ⬜ |
+| 3 | 控制器 `mit_joint_controller` | ⬜ |
+| 4 | URDF + bringup + mock | ⬜ |
+| 5 | 推理节点 | ⬜ |
+| 6 | IMU / 手柄 | ⬜ |
+| 7 | SDK | ⬜ |
+
+## 目录结构
+
+`✅` 已实现，`⬜` 待实现。
+
+```
+src/ros_control_hardware/
+├── package.xml
+├── CMakeLists.txt
+├── ros_control_hardware_plugins.xml
+├── include/ros_control_hardware/
+│   ├── system_hardware.hpp                     ✅ 插件入口
+│   └── driver/
+│       ├── transport/
+│       │   ├── transport.hpp                   ✅ 传输接口（搬字节）
+│       │   ├── loopback_transport.hpp           ✅ 回环（测试替身）
+│       │   └── can_transport.hpp                ⬜ SocketCAN
+│       ├── protocol/
+│       │   ├── motor_protocol.hpp               ✅ 协议接口（编解码）
+│       │   ├── fake_protocol.hpp                ✅ 假电机（测试替身）
+│       │   ├── encos_protocol.hpp               ⬜ ENCOS
+│       │   └── yiyou_protocol.hpp               ⬜ 意优
+│       ├── joint/
+│       │   └── joint_model.hpp                  ✅ 单位换算
+│       └── protocol_factory.hpp                 ⬜ 按 type 创建协议
+├── src/
+│   ├── system_hardware.cpp                      ✅ 生命周期 + 接口导出
+│   └── driver/
+│       ├── transport/loopback_transport.cpp     ✅
+│       ├── transport/can_transport.cpp          ⬜
+│       ├── protocol/fake_protocol.cpp           ✅
+│       ├── protocol/encos_protocol.cpp          ⬜
+│       ├── protocol/yiyou_protocol.cpp          ⬜
+│       └── protocol_factory.cpp                 ⬜
+└── test/
+    └── driver_test.cpp                          ✅
+```
+
+### 驱动层分层规则
+
+| 目录 | 职责 | 变化频率 |
+|---|---|---|
+| `transport/` | 字节怎么进出总线 | 换总线（CAN→EtherCAT）时变 |
+| `protocol/` | 字节是什么意思 | 换电机品牌时变 |
+| `joint/` | 设备值 ↔ 关节值 | 只改参数（方向/减速比/零偏） |
+| `protocol_factory` | 按 `type` 字符串创建 | 加品牌时注册一行 |
+
+**生产代码**（进 `libros_control_hardware.so`）：`system_hardware.cpp`、`can_transport.cpp`、真实协议。
+**测试替身**（只进 `driver_test`）：`loopback_transport.cpp`、`fake_protocol.cpp`。
+
 
 ## 约定（先定死，少返工）
 
