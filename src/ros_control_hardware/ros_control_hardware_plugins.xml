@@ -1,0 +1,8 @@
+<library path="ros_control_hardware">
+  <class
+    name="ros_control_hardware/SystemHardware"
+    type="ros_control_hardware::SystemHardware"
+    base_class_type="hardware_interface::SystemInterface">
+    <description>Multi-bus actuator system interface.</description>
+  </class>
+</library>
