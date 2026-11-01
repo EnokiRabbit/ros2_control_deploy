@@ -3,11 +3,13 @@
 // 覆盖：
 //   1. JointModel 的往返换算
 //   2. FakeProtocol 在 PD 控制下能否收敛到目标
+//   3. EncosProtocol 的 8 字节编码 / type-1 解码
 
 #include <cmath>
 #include <cstdio>
 
 #include "ros_control_hardware/driver/joint/joint_model.hpp"
+#include "ros_control_hardware/driver/protocol/encos_protocol.hpp"
 #include "ros_control_hardware/driver/protocol/fake_protocol.hpp"
 #include "ros_control_hardware/driver/transport/loopback_transport.hpp"
 
@@ -17,9 +19,6 @@ int main()
 {
   // ------------------------------------------------------------
   // 测试 1：单位换算
-  //   joint=0.5, gear=10, offset=0.1
-  //   device = (0.5 - 0.1) * 10 = 4.0
-  //   joint  = 4.0 / 10 + 0.1  = 0.5
   // ------------------------------------------------------------
   JointModel model(1.0, 10.0, 0.1);
   const double device = model.toDevice(0.5);
@@ -30,8 +29,6 @@ int main()
 
   // ------------------------------------------------------------
   // 测试 2：假电机收敛
-  //   目标 0.5 rad，kp=40，kd=2，惯量 0.5，步长 5ms
-  //   跑 1000 步 = 5 秒
   // ------------------------------------------------------------
   LoopbackTransport transport;
   FakeProtocol motor(transport, 0x01, 0.5);
@@ -48,10 +45,8 @@ int main()
   int decoded_frames = 0;
 
   for (int step = 0; step < 1000; ++step) {
-    // 下发一步命令：假电机内部积分 5ms，并 push 一帧回包
     motor.writeCommand(command);
 
-    // 取空队列里的所有回包
     CanFrame frame;
     while (transport.receive(frame)) {
       DeviceState state;
@@ -68,6 +63,47 @@ int main()
   const bool motor_ok =
       std::fabs(position - 0.5) < 0.02 && decoded_frames == 1000;
 
-  std::printf("%s\n", (model_ok && motor_ok) ? "PASS" : "FAIL");
-  return (model_ok && motor_ok) ? 0 : 1;
+  // ------------------------------------------------------------
+  // 测试 3：ENCOS 编码 / 解码
+  // ------------------------------------------------------------
+  bool encos_ok = false;
+  {
+    LoopbackTransport encos_transport;
+    EncosLimits limits;
+    EncosProtocol encos(encos_transport, 0x03, limits);
+
+    DeviceCommand encos_command;
+    encos_command.position = 0.5;
+    encos_command.kp = 40.0;
+    encos_command.kd = 2.0;
+    encos.writeCommand(encos_command);
+
+    const bool sent_ok = encos_transport.sentFrames().size() == 1 &&
+                         encos_transport.sentFrames()[0].id == 0x03 &&
+                         encos_transport.sentFrames()[0].len == 8;
+
+    CanFrame reply;
+    reply.id = 0x03;
+    reply.len = 8;
+    const int pos_i =
+        EncosProtocol::floatToUint(0.5, limits.pos_min, limits.pos_max, 16);
+    reply.data[1] = static_cast<uint8_t>(pos_i >> 8);
+    reply.data[2] = static_cast<uint8_t>(pos_i & 0xFF);
+    reply.data[6] = 50;
+    reply.data[7] = 50;
+
+    DeviceState state;
+    const bool decode_ok = encos.decode(reply, state);
+    encos_ok = sent_ok && decode_ok && std::fabs(state.position - 0.5) < 0.002;
+
+    std::printf("encos: sent=%d decode=%d pos=%.4f [%s]\n",
+                sent_ok, decode_ok, state.position, encos_ok ? "ok" : "FAIL");
+  }
+
+  // ------------------------------------------------------------
+  // 总结
+  // ------------------------------------------------------------
+  const bool all_ok = model_ok && motor_ok && encos_ok;
+  std::printf("%s\n", all_ok ? "PASS" : "FAIL");
+  return all_ok ? 0 : 1;
 }

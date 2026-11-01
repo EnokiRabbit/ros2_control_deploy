@@ -47,6 +47,7 @@ add_executable(driver_test
   test/driver_test.cpp
   src/driver/transport/loopback_transport.cpp
   src/driver/protocol/fake_protocol.cpp
+  src/driver/protocol/encos_protocol.cpp
 )
 
 
