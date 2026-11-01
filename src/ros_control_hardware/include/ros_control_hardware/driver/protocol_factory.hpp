@@ -12,14 +12,14 @@
 
 namespace ros_control_hardware {
 
-/// 单个电机的描述，全部来自 yaml
+/// Description of a single motor, fully populated from yaml.
 struct MotorSpec {
-  std::string type;        ///< "encos" | "yiyou" | 以后新增
+  std::string type;        ///< "encos" | "yiyou" | future types
   uint8_t can_id{0};
 
   double direction{1.0};   ///< +1 / -1
   double gear_ratio{1.0};
-  double offset{0.0};                  //todevice and tojoint
+  double offset{0.0};      // Used by toDevice / toJoint
 
   double rated_torque{90.0};
   double torque_limit{90.0};
@@ -35,7 +35,7 @@ struct MotorSpec {
   double kt{2.1};
 };
 
-/// 协议注册表：新增电机类型只需注册一行，SystemHardware 不用改
+/// Protocol registry: adding a motor type requires one registration line only.
 class ProtocolFactory {
 public:
   using Creator =
@@ -43,7 +43,7 @@ public:
 
   static void registerType(const std::string & type, Creator creator);
 
-  /// 找不到类型返回 nullptr
+  /// Returns nullptr when the type is unknown.
   static std::unique_ptr<MotorProtocol> create(
       const std::string & type, Transport & transport, const MotorSpec & spec);
 
@@ -53,7 +53,7 @@ private:
   static std::map<std::string, Creator> & registry();
 };
 
-/// 注册内置协议（encos / yiyou），在 on_init 或测试开头调用一次
+/// Register built-in protocols (encos / yiyou); call once in on_init or at test start.
 void registerBuiltinProtocols();
 
 }  // namespace ros_control_hardware

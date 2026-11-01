@@ -17,16 +17,16 @@ bool FakeProtocol::configure(std::string & error)
 
 void FakeProtocol::writeCommand(const DeviceCommand & command)
 {
-  // 1. PD：算需要的力矩
+  // 1. PD law: compute the required torque
   effort_ = command.kp * (command.position - position_) +
             command.kd * (command.velocity - velocity_) +
             command.effort;
 
-  // 2. 牛二定律：a = F / m，再积分
+  // 2. Newton's second law: a = F / m, then integrate
   velocity_ += effort_ / inertia_ * dt_;
   position_ += velocity_ * dt_;
 
-  // 3. 把新状态作为回包发回主机
+  // 3. Publish the new state as a reply to the host
   publishState();
 }
 

@@ -26,7 +26,7 @@ double EncosProtocol::uintToFloat(int value, double min, double max, int bits)
 bool EncosProtocol::configure(std::string & error)
 {
   (void)error;
-  // ENCOS 的 MIT 命令本身就会使能电机，不需要额外初始化帧
+  // ENCOS MIT commands enable the motor implicitly; no extra init frame needed
   return true;
 }
 
@@ -61,7 +61,7 @@ void EncosProtocol::writeCommand(const DeviceCommand & command)
 
 void EncosProtocol::requestState()
 {
-  // ENCOS 收到 MIT 命令后会主动回 type-1 帧，无需轮询
+  // ENCOS replies with a type-1 frame after each MIT command; no polling needed
 }
 
 bool EncosProtocol::decode(const CanFrame & frame, DeviceState & state)
@@ -84,7 +84,7 @@ bool EncosProtocol::decode(const CanFrame & frame, DeviceState & state)
   state.effort = current * limits_.kt;
   state.temperature = (static_cast<double>(frame.data[6]) - 50.0) / 2.0;
   state.valid = true;
-  (void)error;   // 错误码暂时只做诊断，不影响有效性
+  (void)error;   // Error code is diagnostic only and does not affect validity
   return true;
 }
 

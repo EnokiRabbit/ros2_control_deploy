@@ -1,10 +1,10 @@
-// 驱动层验收：不需要 CAN，也不需要真电机。
+// Driver-layer acceptance tests: no CAN bus and no real motor required.
 //
-// 覆盖：
-//   1. JointModel 的往返换算
-//   2. FakeProtocol 在 PD 控制下能否收敛到目标
-//   3. EncosProtocol 的 8 字节编码 / type-1 解码
-//   4. YiyouProtocol 的力矩千分比编码 / READ_REPLY 解码
+// Coverage:
+//   1. JointModel round-trip conversions
+//   2. FakeProtocol convergence under PD control
+//   3. EncosProtocol 8-byte encoding / type-1 decoding
+//   4. YiyouProtocol per-mille torque encoding / READ_REPLY decoding
 
 #include <cmath>
 #include <cstdio>
@@ -21,7 +21,7 @@ using namespace ros_control_hardware;
 int main()
 {
   // ------------------------------------------------------------
-  // 测试 1：单位换算（位置 / 速度 / 力矩）
+  // Test 1: unit conversions (position / velocity / effort)
   // ------------------------------------------------------------
   JointModel model(1.0, 10.0, 0.1);
 
@@ -45,7 +45,7 @@ int main()
       model.toJointPosition(device_position), model_ok ? "ok" : "FAIL");
 
   // ------------------------------------------------------------
-  // 测试 2：假电机收敛
+  // Test 2: fake motor convergence
   // ------------------------------------------------------------
   LoopbackTransport transport;
   FakeProtocol motor(transport, 0x01, 0.5);
@@ -81,7 +81,7 @@ int main()
       std::fabs(position - 0.5) < 0.02 && decoded_frames == 1000;
 
   // ------------------------------------------------------------
-  // 测试 3：ENCOS 编码 / 解码
+  // Test 3: ENCOS encoding / decoding
   // ------------------------------------------------------------
   bool encos_ok = false;
   {
@@ -118,7 +118,7 @@ int main()
   }
 
   // ------------------------------------------------------------
-  // 测试 4：意优编码 / 解码
+  // Test 4: Yiyou encoding / decoding
   // ------------------------------------------------------------
   bool yiyou_ok = false;
   {
@@ -144,7 +144,7 @@ int main()
         sent.data[0] == YiyouProtocol::kCmdFastWrite &&
         sent.data[1] == YiyouProtocol::kRegTargetTorque;
 
-    // 手工造一帧"当前位置 = 0.5 rad"的 READ_REPLY
+    // Build a READ_REPLY frame carrying "current position = 0.5 rad"
     CanFrame reply;
     reply.id = 0x01;
     reply.len = 6;
@@ -167,7 +167,8 @@ int main()
                 after_config, frame_ok, decode_ok, state.position,
                 yiyou_ok ? "ok" : "FAIL");
   }
-    bool factory_ok = false;
+  // Test 5: protocol factory creates by type string
+  bool factory_ok = false;
   {
     registerBuiltinProtocols();
 
@@ -189,7 +190,7 @@ int main()
                 factory_ok ? "ok" : "FAIL");
   }
   // ------------------------------------------------------------
-  // 总结
+  // Summary
   // ------------------------------------------------------------
   const bool all_ok = model_ok && motor_ok && encos_ok && yiyou_ok && factory_ok;
   std::printf("%s\n", all_ok ? "PASS" : "FAIL");

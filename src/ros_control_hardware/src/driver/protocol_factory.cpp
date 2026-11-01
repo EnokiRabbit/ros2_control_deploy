@@ -9,7 +9,7 @@ namespace ros_control_hardware {
 
 std::map<std::string, ProtocolFactory::Creator> & ProtocolFactory::registry()
 {
-  // 函数内静态：第一次调用时构造，线程安全（C++11 起）
+  // Function-local static: constructed on first use, thread-safe since C++11
   static std::map<std::string, Creator> instance;
   return instance;
 }

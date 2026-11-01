@@ -1,7 +1,7 @@
-# 把指定 CAN 总线上所有电机当前位置标定为零位
-# 阻塞式操作，执行期间硬件暂停收发；仅用于调试/标定
+# Calibrate the current position of all motors on a CAN bus as zero
+# Blocking operation: hardware I/O is paused while it runs; debug/calibration only
 
-# can0 / can1 / can2；空字符串表示全部总线
+# can0 / can1 / can2; empty string means all buses
 string can_bus
 ---
 bool success

@@ -9,7 +9,7 @@ namespace ros_control_hardware {
 hardware_interface::CallbackReturn SystemHardware::on_init(
     const hardware_interface::HardwareInfo & info)
 {
-  // 必须调用基类：它会保存 info_、检查接口声明
+  // Must call the base class: it stores info_ and validates interface declarations
   if (hardware_interface::SystemInterface::on_init(info) !=
       hardware_interface::CallbackReturn::SUCCESS) {
     return hardware_interface::CallbackReturn::ERROR;
@@ -17,12 +17,12 @@ hardware_interface::CallbackReturn SystemHardware::on_init(
 
   const size_t n = info_.joints.size();
 
-  // 状态缓冲：一次定长，之后绝不再 resize
+  // State buffers: sized once and never resized afterwards
   state_position_.assign(n, 0.0);
   state_velocity_.assign(n, 0.0);
   state_effort_.assign(n, 0.0);
 
-  // 命令缓冲：NaN = "还没有有效命令"
+  // Command buffers: NaN means "no valid command yet"
   const double nan = std::numeric_limits<double>::quiet_NaN();
   cmd_position_.assign(n, nan);
   cmd_velocity_.assign(n, nan);
@@ -71,7 +71,7 @@ hardware_interface::CallbackReturn SystemHardware::on_configure(
     const rclcpp_lifecycle::State & previous_state)
 {
   (void)previous_state;
-  // 2.2 在这里打开 Transport、建 Protocol
+  // Step 2.2: open transports and build protocols here
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -79,7 +79,7 @@ hardware_interface::CallbackReturn SystemHardware::on_cleanup(
     const rclcpp_lifecycle::State & previous_state)
 {
   (void)previous_state;
-  // 2.2 在这里关闭 Transport、释放 Protocol
+  // Step 2.2: close transports and release protocols here
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -87,7 +87,7 @@ hardware_interface::CallbackReturn SystemHardware::on_activate(
     const rclcpp_lifecycle::State & previous_state)
 {
   (void)previous_state;
-  // 2.2 在这里清队列、把命令重置为 NaN
+  // Step 2.2: clear queues and reset commands to NaN here
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -95,7 +95,7 @@ hardware_interface::CallbackReturn SystemHardware::on_deactivate(
     const rclcpp_lifecycle::State & previous_state)
 {
   (void)previous_state;
-  // 2.3 在这里发一次阻尼
+  // Step 2.3: send one damping command here
   return hardware_interface::CallbackReturn::SUCCESS;
 }
 
@@ -104,7 +104,7 @@ hardware_interface::return_type SystemHardware::read(
 {
   (void)time;
   (void)period;
-  // 2.2 在这里从 Transport 收帧 -> Protocol 解码 -> 写 state_position_ 等
+  // Step 2.2: receive from Transport -> decode with Protocol -> write state_position_ etc.
   return hardware_interface::return_type::OK;
 }
 
@@ -113,12 +113,12 @@ hardware_interface::return_type SystemHardware::write(
 {
   (void)time;
   (void)period;
-  // 2.3 在这里读 cmd_* -> 组帧 -> Transport 发送
+  // Step 2.3: read cmd_* -> build frames -> send through Transport
   return hardware_interface::return_type::OK;
 }
 
 }  // namespace ros_control_hardware
 
-// 把这个类注册成 pluginlib 插件
+// Register this class as a pluginlib plugin
 PLUGINLIB_EXPORT_CLASS(ros_control_hardware::SystemHardware,
                        hardware_interface::SystemInterface)

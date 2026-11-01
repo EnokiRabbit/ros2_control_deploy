@@ -28,18 +28,18 @@ bool YiyouProtocol::configure(std::string & error)
 {
   (void)error;
 
-  // 切到电流（力矩）模式
+  // Switch to current (torque) mode
   sendCommand(kCmdWrite, kRegWorkMode, 4);
-  // 使能
+  // Enable the motor
   sendCommand(kCmdWrite, kRegEnableState, 1);
-  // 读一次当前位置，初始化 position_
+  // Read the current position once to initialize position_
   sendCommand(kCmdRead, kRegCurrentPosition, 0);
   return true;
 }
 
 void YiyouProtocol::writeCommand(const DeviceCommand & command)
 {
-  // 意优没有 MIT，主机自己算 PD
+  // Yiyou has no MIT mode, so the host computes the PD law itself
   const double torque = command.kp * (command.position - position_) +
                         command.kd * (command.velocity - velocity_) +
                         command.effort;
@@ -55,7 +55,7 @@ void YiyouProtocol::writeCommand(const DeviceCommand & command)
 
 void YiyouProtocol::requestState()
 {
-  // 一帧只能读一个寄存器，位置和速度交替读
+  // One frame reads one register, so alternate between position and velocity
   if (poll_index_ == 0) {
     sendCommand(kCmdRead, kRegCurrentPosition, 0);
     poll_index_ = 1;

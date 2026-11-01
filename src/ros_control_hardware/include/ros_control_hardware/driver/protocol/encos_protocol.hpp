@@ -8,7 +8,7 @@
 
 namespace ros_control_hardware {
 
-/// ENCOS EC 系列的量化量程（按型号不同）
+/// Quantization ranges for the ENCOS EC series (varies by model).
 struct EncosLimits {
   double kp_min{0.0};
   double kp_max{500.0};
@@ -22,7 +22,7 @@ struct EncosLimits {
   double torque_max{90.0};
   double current_min{-60.0};
   double current_max{60.0};
-  double kt{2.1};   // 电流 -> 力矩的系数
+  double kt{2.1};   // Current -> torque coefficient
 };
 
 class EncosProtocol : public MotorProtocol {
@@ -35,7 +35,7 @@ public:
   bool decode(const CanFrame & frame, DeviceState & state) override;
   [[nodiscard]] bool supportsMit() const override { return true; }
 
-  // 测试用：暴露量化/反量化
+  // Test helpers: expose quantization / dequantization
   static int floatToUint(double value, double min, double max, int bits);
   static double uintToFloat(int value, double min, double max, int bits);
 

@@ -5,14 +5,14 @@
 
 namespace ros_control_hardware {
 
-/// 一帧原始总线数据（CAN 最多 8 字节）
+/// One raw bus frame (CAN payload is at most 8 bytes).
 struct CanFrame {
-  uint32_t id{0};       // 标准帧 ID = 电机节点号
-  uint8_t data[8]{};    // 数据区
-  uint8_t len{0};       // 实际长度（0-8）
+  uint32_t id{0};       // Standard frame ID = motor node id
+  uint8_t data[8]{};    // Payload
+  uint8_t len{0};       // Actual length (0-8)
 };
 
-/// 传输层：只搬字节，不认识电机
+/// Transport layer: moves bytes only, knows nothing about motors.
 class Transport {
 public:
   virtual ~Transport() = default;
@@ -22,7 +22,7 @@ public:
 
   virtual bool send(const CanFrame & frame) = 0;
 
-  /// 非阻塞：没有帧就返回 false，绝不等待
+  /// Non-blocking: returns false when no frame is available, never waits.
   virtual bool receive(CanFrame & frame) = 0;
 };
 

@@ -7,7 +7,7 @@
 
 namespace ros_control_hardware {
 
-/// 进程内回环：测试时替代真实 CAN
+/// In-process loopback transport: replaces a real CAN bus in tests.
 class LoopbackTransport : public Transport {
 public:
   bool open(std::string & error) override;
@@ -16,15 +16,15 @@ public:
   bool send(const CanFrame & frame) override;
   bool receive(CanFrame & frame) override;
 
-  /// 设备侧注入回包（模拟总线收到电机反馈）
+  /// Inject a frame on the device side (simulates a motor reply on the bus).
   void push(const CanFrame & frame);
 
-  /// 测试用：查看主机发出了哪些帧
+  /// Test helper: inspect the frames the host has sent.
   [[nodiscard]] const std::vector<CanFrame> & sentFrames() const { return sent_; }
 
 private:
-  std::deque<CanFrame> receive_queue_;  // 设备 -> 主机
-  std::vector<CanFrame> sent_;          // 主机 -> 设备（留档）
+  std::deque<CanFrame> receive_queue_;  // device -> host
+  std::vector<CanFrame> sent_;          // host -> device (recorded)
 };
 
 }  // namespace ros_control_hardware

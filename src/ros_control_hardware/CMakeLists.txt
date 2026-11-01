@@ -42,7 +42,7 @@ install(TARGETS ${PROJECT_NAME}
 install(FILES ros_control_hardware_plugins.xml
   DESTINATION share/${PROJECT_NAME})
 
-# ---- 驱动层验收（不需要 CAN，也不需要真电机）----
+# ---- Driver-layer acceptance test (no CAN, no real motor) ----
 add_executable(driver_test
   test/driver_test.cpp
   src/driver/transport/loopback_transport.cpp

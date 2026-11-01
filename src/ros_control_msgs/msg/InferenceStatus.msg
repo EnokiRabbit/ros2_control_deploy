@@ -1,4 +1,4 @@
-# 推理节点状态，供 SDK / 上位机监控
+# Inference node status, for SDK / operator monitoring
 
 uint8 IDLE=0
 uint8 CROUCH=1
