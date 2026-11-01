@@ -14,9 +14,8 @@ find_package(ros_control_msgs REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   src/system_hardware.cpp
-  #src/driver/can_transport.cpp
-  #src/driver/loopback_transport.cpp
-  #src/driver/yiyou_protocol.cpp
+  # src/driver/transport/can_transport.cpp
+  # src/driver/protocol/protocol_factory.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
@@ -43,14 +42,16 @@ install(TARGETS ${PROJECT_NAME}
 install(FILES ros_control_hardware_plugins.xml
   DESTINATION share/${PROJECT_NAME})
 
+# ---- 驱动层验收（不需要 CAN，也不需要真电机）----
 add_executable(driver_test
   test/driver_test.cpp
   src/driver/transport/loopback_transport.cpp
   src/driver/protocol/fake_protocol.cpp
   src/driver/protocol/encos_protocol.cpp
+  src/driver/protocol/yiyou_protocol.cpp
 )
 
-
+target_compile_features(driver_test PRIVATE cxx_std_17)
 target_include_directories(driver_test PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
 )

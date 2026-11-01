@@ -4,6 +4,7 @@
 //   1. JointModel 的往返换算
 //   2. FakeProtocol 在 PD 控制下能否收敛到目标
 //   3. EncosProtocol 的 8 字节编码 / type-1 解码
+//   4. YiyouProtocol 的力矩千分比编码 / READ_REPLY 解码
 
 #include <cmath>
 #include <cstdio>
@@ -11,6 +12,7 @@
 #include "ros_control_hardware/driver/joint/joint_model.hpp"
 #include "ros_control_hardware/driver/protocol/encos_protocol.hpp"
 #include "ros_control_hardware/driver/protocol/fake_protocol.hpp"
+#include "ros_control_hardware/driver/protocol/yiyou_protocol.hpp"
 #include "ros_control_hardware/driver/transport/loopback_transport.hpp"
 
 using namespace ros_control_hardware;
@@ -101,9 +103,60 @@ int main()
   }
 
   // ------------------------------------------------------------
+  // 测试 4：意优编码 / 解码
+  // ------------------------------------------------------------
+  bool yiyou_ok = false;
+  {
+    LoopbackTransport yiyou_transport;
+    YiyouLimits limits;
+    YiyouProtocol yiyou(yiyou_transport, 0x01, limits);
+
+    std::string error;
+    yiyou.configure(error);
+    const std::size_t after_config = yiyou_transport.sentFrames().size();
+    const bool config_ok = after_config == 3;
+
+    DeviceCommand yiyou_command;
+    yiyou_command.position = 0.5;
+    yiyou_command.kp = 40.0;
+    yiyou_command.kd = 2.0;
+    yiyou.writeCommand(yiyou_command);
+
+    const CanFrame & sent = yiyou_transport.sentFrames().back();
+    const bool frame_ok =
+        yiyou_transport.sentFrames().size() == after_config + 1 &&
+        sent.id == 0x01 && sent.len == 6 &&
+        sent.data[0] == YiyouProtocol::kCmdFastWrite &&
+        sent.data[1] == YiyouProtocol::kRegTargetTorque;
+
+    // 手工造一帧"当前位置 = 0.5 rad"的 READ_REPLY
+    CanFrame reply;
+    reply.id = 0x01;
+    reply.len = 6;
+    reply.data[0] = YiyouProtocol::kCmdReadReply;
+    reply.data[1] = YiyouProtocol::kRegCurrentPosition;
+
+    constexpr double kTwoPi = 6.28318530717958647692;
+    const auto pulses = static_cast<uint32_t>(0.5 / kTwoPi * 65536.0);
+    reply.data[2] = static_cast<uint8_t>((pulses >> 24) & 0xFF);
+    reply.data[3] = static_cast<uint8_t>((pulses >> 16) & 0xFF);
+    reply.data[4] = static_cast<uint8_t>((pulses >> 8) & 0xFF);
+    reply.data[5] = static_cast<uint8_t>(pulses & 0xFF);
+
+    DeviceState state;
+    const bool decode_ok = yiyou.decode(reply, state);
+    yiyou_ok = config_ok && frame_ok && decode_ok &&
+               std::fabs(state.position - 0.5) < 0.01;
+
+    std::printf("yiyou: config=%zu frame=%d decode=%d pos=%.4f [%s]\n",
+                after_config, frame_ok, decode_ok, state.position,
+                yiyou_ok ? "ok" : "FAIL");
+  }
+
+  // ------------------------------------------------------------
   // 总结
   // ------------------------------------------------------------
-  const bool all_ok = model_ok && motor_ok && encos_ok;
+  const bool all_ok = model_ok && motor_ok && encos_ok && yiyou_ok;
   std::printf("%s\n", all_ok ? "PASS" : "FAIL");
   return all_ok ? 0 : 1;
 }
