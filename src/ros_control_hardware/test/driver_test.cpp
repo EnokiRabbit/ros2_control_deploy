@@ -14,6 +14,7 @@
 #include "ros_control_hardware/driver/protocol/fake_protocol.hpp"
 #include "ros_control_hardware/driver/protocol/yiyou_protocol.hpp"
 #include "ros_control_hardware/driver/transport/loopback_transport.hpp"
+#include "ros_control_hardware/driver/protocol_factory.hpp"
 
 using namespace ros_control_hardware;
 
@@ -152,11 +153,31 @@ int main()
                 after_config, frame_ok, decode_ok, state.position,
                 yiyou_ok ? "ok" : "FAIL");
   }
+    bool factory_ok = false;
+  {
+    registerBuiltinProtocols();
 
+    LoopbackTransport factory_transport;
+    MotorSpec spec;
+    spec.type = "encos";
+    spec.can_id = 0x02;
+
+    auto encos = ProtocolFactory::create("encos", factory_transport, spec);
+    auto yiyou = ProtocolFactory::create("yiyou", factory_transport, spec);
+    auto unknown = ProtocolFactory::create("unknown", factory_transport, spec);
+
+    factory_ok = (encos != nullptr) && (yiyou != nullptr) && (unknown == nullptr);
+
+    std::printf("factory: encos=%d yiyou=%d unknown=%d [%s]\n",
+                encos != nullptr ? 1 : 0,
+                yiyou != nullptr ? 1 : 0,
+                unknown != nullptr ? 1 : 0,
+                factory_ok ? "ok" : "FAIL");
+  }
   // ------------------------------------------------------------
   // 总结
   // ------------------------------------------------------------
-  const bool all_ok = model_ok && motor_ok && encos_ok && yiyou_ok;
+  const bool all_ok = model_ok && motor_ok && encos_ok && yiyou_ok && factory_ok;
   std::printf("%s\n", all_ok ? "PASS" : "FAIL");
   return all_ok ? 0 : 1;
 }

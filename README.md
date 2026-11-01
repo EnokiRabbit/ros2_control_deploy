@@ -95,9 +95,11 @@ src/
 | 2.1 | `ros_control_hardware`：插件骨架、5 command / 3 state 接口 | ✅ |
 | 2.2 | 驱动层：接口 + 回环传输 + 单位换算 | ✅ |
 | 2.2b | 假电机 + `driver_test` | ✅ |
-| 2.3 | ENCOS / 意优真实协议 + 协议工厂 | ⬜ |
-| 2.4 | SocketCAN `CanTransport` | ⬜ |
-| 2.5 | `SystemHardware::read/write` 接入驱动层 | ⬜ |
+| 2.3 | ENCOS / 意优真实协议 | ✅ |
+| 2.3b | 意优力矩协议 | ✅ |
+| 2.4 | 协议工厂 `ProtocolFactory` | ✅ |
+| 2.5 | SocketCAN `CanTransport` | ⬜ |
+| 2.6 | `SystemHardware::read/write` 接入驱动层 | ⬜ |
 | 3 | 控制器 `mit_joint_controller` | ⬜ |
 | 4 | URDF + bringup + mock | ⬜ |
 | 5 | 推理节点 | ⬜ |
@@ -127,7 +129,7 @@ src/ros_control_hardware/
 │       │   └── yiyou_protocol.hpp               ⬜ 意优
 │       ├── joint/
 │       │   └── joint_model.hpp                  ✅ 单位换算
-│       └── protocol_factory.hpp                 ⬜ 按 type 创建协议
+│       └── protocol_factory.hpp                 ✅ 按 type 创建协议
 ├── src/
 │   ├── system_hardware.cpp                      ✅ 生命周期 + 接口导出
 │   └── driver/
@@ -136,7 +138,7 @@ src/ros_control_hardware/
 │       ├── protocol/fake_protocol.cpp           ✅
 │       ├── protocol/encos_protocol.cpp          ⬜
 │       ├── protocol/yiyou_protocol.cpp          ⬜
-│       └── protocol_factory.cpp                 ⬜
+│       └── protocol_factory.cpp                 ✅
 └── test/
     └── driver_test.cpp                          ✅
 ```

@@ -49,6 +49,7 @@ add_executable(driver_test
   src/driver/protocol/fake_protocol.cpp
   src/driver/protocol/encos_protocol.cpp
   src/driver/protocol/yiyou_protocol.cpp
+  src/driver/protocol_factory.cpp
 )
 
 target_compile_features(driver_test PRIVATE cxx_std_17)
