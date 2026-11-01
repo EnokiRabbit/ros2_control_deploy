@@ -21,14 +21,28 @@ using namespace ros_control_hardware;
 int main()
 {
   // ------------------------------------------------------------
-  // 测试 1：单位换算
+  // 测试 1：单位换算（位置 / 速度 / 力矩）
   // ------------------------------------------------------------
   JointModel model(1.0, 10.0, 0.1);
-  const double device = model.toDevice(0.5);
-  const bool model_ok = std::fabs(model.toJoint(device) - 0.5) < 1e-9;
 
-  std::printf("joint model: joint=0.5 -> device=%.4f -> joint=%.4f  [%s]\n",
-              device, model.toJoint(device), model_ok ? "ok" : "FAIL");
+  const double device_position = model.toDevicePosition(0.5);
+  const bool position_ok =
+      std::fabs(model.toJointPosition(device_position) - 0.5) < 1e-9;
+
+  const double device_velocity = model.toDeviceVelocity(2.0);
+  const bool velocity_ok =
+      std::fabs(model.toJointVelocity(device_velocity) - 2.0) < 1e-9;
+
+  const double device_effort = model.toDeviceEffort(3.0);
+  const bool effort_ok =
+      std::fabs(model.toJointEffort(device_effort) - 3.0) < 1e-9;
+
+  const bool model_ok = position_ok && velocity_ok && effort_ok;
+
+  std::printf(
+      "joint model: pos=%d vel=%d eff=%d (device_pos=%.4f joint_pos=%.4f) [%s]\n",
+      position_ok, velocity_ok, effort_ok, device_position,
+      model.toJointPosition(device_position), model_ok ? "ok" : "FAIL");
 
   // ------------------------------------------------------------
   // 测试 2：假电机收敛
