@@ -98,8 +98,8 @@ src/
 | 2.3 | ENCOS / 意优真实协议 | ✅ |
 | 2.3b | 意优力矩协议 | ✅ |
 | 2.4 | 协议工厂 `ProtocolFactory` | ✅ |
-| 2.5 | SocketCAN `CanTransport` | ⬜ |
-| 2.6 | `SystemHardware::read/write` 接入驱动层 | ⬜ |
+| 2.5 | `SystemHardware` 接入驱动层 | 🔶 代码完成，待 URDF 验证 |
+| 2.6 | SocketCAN `CanTransport` | ⬜ |
 | 3 | 控制器 `mit_joint_controller` | ⬜ |
 | 4 | URDF + bringup + mock | ⬜ |
 | 5 | 推理节点 | ⬜ |
@@ -154,6 +154,30 @@ src/ros_control_hardware/
 
 **生产代码**（进 `libros_control_hardware.so`）：`system_hardware.cpp`、`can_transport.cpp`、真实协议。
 **测试替身**（只进 `driver_test`）：`loopback_transport.cpp`、`fake_protocol.cpp`。
+
+## 待回头学习（SDK 完成后）
+
+电机协议的细节先跳过，等 SDK 写完、整条链路跑通后再回来补：
+
+- [ ] ENCOS type-1 回包每个字节的含义（错误码、位置、速度、电流、两个温度）
+- [ ] 意优寄存器表：`WORK_MODE` / `ENABLE_STATE` / `TARGET_TORQUE` / `CURRENT_*`
+- [ ] 量化位宽与量程：为什么 kp 12 位、kd 9 位、位置 16 位
+- [ ] 方向 `direction`、减速比 `gear_ratio`、零偏 `offset` 的标定方法
+- [ ] 速度/力矩换算为什么和位置不同（力矩是乘减速比，速度是除）
+- [ ] `requestState` 与自动回包的时序差异（ENCOS vs 意优）
+- [ ] 用 `candump` / `cansend` 抓包验证字节
+- [ ] 各型号的真实量程（kp/kd/pos/spd/current/kt）和错误码含义
+- [ ] 过温、过流、堵转时电机回什么、代码该怎么处理
+
+## 下一步
+
+- [ ] 最小 URDF（`test/minimal.urdf`）验证插件加载
+- [ ] `controllers.yaml` + `joint_state_broadcaster` 看到 `/joint_states`
+- [ ] `mit_joint_controller`（第 3 步）
+- [ ] 完整 URDF + bringup（第 4 步）
+- [ ] 推理节点（第 5 步）
+- [ ] IMU / 手柄（第 6 步）
+- [ ] SDK（第 7 步）
 
 
 ## 约定（先定死，少返工）
