@@ -14,8 +14,11 @@ find_package(ros_control_msgs REQUIRED)
 
 add_library(${PROJECT_NAME} SHARED
   src/system_hardware.cpp
+  src/driver/transport/loopback_transport.cpp
+  src/driver/protocol/encos_protocol.cpp
+  src/driver/protocol/yiyou_protocol.cpp
+  src/driver/protocol_factory.cpp
   # src/driver/transport/can_transport.cpp
-  # src/driver/protocol/protocol_factory.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)

@@ -98,10 +98,10 @@ src/
 | 2.3 | ENCOS / 意优真实协议 | ✅ |
 | 2.3b | 意优力矩协议 | ✅ |
 | 2.4 | 协议工厂 `ProtocolFactory` | ✅ |
-| 2.5 | `SystemHardware` 接入驱动层 | 🔶 代码完成，待 URDF 验证 |
+| 2.5 | `SystemHardware` 接入驱动层 | ✅ 已用最小 URDF 验证 |
 | 2.6 | SocketCAN `CanTransport` | ⬜ |
 | 3 | 控制器 `mit_joint_controller` | ⬜ |
-| 4 | URDF + bringup + mock | ⬜ |
+| 4 | URDF + bringup + mock | 🔶 最小 URDF/launch 已跑通，完整模型待做 |
 | 5 | 推理节点 | ⬜ |
 | 6 | IMU / 手柄 | ⬜ |
 | 7 | SDK | ⬜ |
@@ -171,7 +171,7 @@ src/ros_control_hardware/
 
 ## 下一步
 
-- [ ] 最小 URDF（`test/minimal.urdf`）验证插件加载
+- [x] 最小 URDF（`test/minimal.urdf`）验证插件加载
 - [ ] `controllers.yaml` + `joint_state_broadcaster` 看到 `/joint_states`
 - [ ] `mit_joint_controller`（第 3 步）
 - [ ] 完整 URDF + bringup（第 4 步）

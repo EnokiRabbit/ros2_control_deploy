@@ -1,0 +1,65 @@
+<?xml version="1.0"?>
+<robot name="minimal_robot">
+  <!-- Two joints, no meshes: only used to verify that the hardware plugin loads. -->
+  <link name="base_link"/>
+
+  <link name="left_knee_link"/>
+  <joint name="left_knee_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="left_knee_link"/>
+    <origin xyz="0 0.1 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.087" upper="1.745" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <link name="right_knee_link"/>
+  <joint name="right_knee_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="right_knee_link"/>
+    <origin xyz="0 -0.1 0" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.087" upper="1.745" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <ros2_control name="MinimalSystem" type="system">
+    <hardware>
+      <plugin>ros_control_hardware/SystemHardware</plugin>
+    </hardware>
+
+    <joint name="left_knee_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">loopback0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">4</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">10.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+
+    <joint name="right_knee_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">loopback0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">5</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">10.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+  </ros2_control>
+</robot>
