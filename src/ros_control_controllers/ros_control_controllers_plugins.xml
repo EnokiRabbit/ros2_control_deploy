@@ -1,0 +1,8 @@
+<library path="ros_control_controllers">
+  <class
+    name="ros_control_controllers/MitJointController"
+    type="ros_control_controllers::MitJointController"
+    base_class_type="controller_interface::ControllerInterface">
+    <description>MIT joint command controller.</description>
+  </class>
+</library>
