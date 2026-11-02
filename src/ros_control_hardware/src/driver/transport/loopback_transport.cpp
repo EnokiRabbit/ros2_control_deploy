@@ -16,6 +16,11 @@ void LoopbackTransport::close()
 
 bool LoopbackTransport::send(const CanFrame & frame)
 {
+  // Bound the history so long-running loops do not grow memory forever.
+  constexpr std::size_t kMaxRecordedFrames = 10000;
+  if (sent_.size() >= kMaxRecordedFrames) {
+    sent_.clear();
+  }
   sent_.push_back(frame);
   return true;
 }
