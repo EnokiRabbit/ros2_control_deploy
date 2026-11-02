@@ -1,6 +1,7 @@
 controller_manager:
   ros__parameters:
-    update_rate: 200
+    # Mock/testing on a VM: 100 Hz. Use 200 Hz on the real robot.
+    update_rate: 100
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
