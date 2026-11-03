@@ -40,5 +40,19 @@ def generate_launch_description():
                 ],
                 output="screen",
             ),
+            ExecuteProcess(
+                cmd=[
+                    "ros2",
+                    "run",
+                    "controller_manager",
+                    "spawner",
+                    "mit_joint_controller",
+                    "--controller-manager",
+                    "/controller_manager",
+                    "--controller-manager-timeout",
+                    "30",
+                ],
+                output="screen",
+            ),
         ]
     )

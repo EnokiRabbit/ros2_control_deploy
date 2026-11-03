@@ -32,3 +32,13 @@ controller_manager:
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
+    mit_joint_controller:
+      type: ros_control_controllers/MitJointController
+
+mit_joint_controller:
+  ros__parameters:
+    joints:
+      - left_knee_joint
+      - right_knee_joint
+    command_timeout: 0.5
+    damping_kd: 0.0
