@@ -18,7 +18,7 @@ add_library(${PROJECT_NAME} SHARED
   src/driver/protocol/encos_protocol.cpp
   src/driver/protocol/yiyou_protocol.cpp
   src/driver/protocol_factory.cpp
-  # src/driver/transport/can_transport.cpp
+  src/driver/transport/can_transport.cpp
 )
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_17)
@@ -55,8 +55,18 @@ add_executable(driver_test
   src/driver/protocol_factory.cpp
 )
 
+add_executable(can_transport_test
+  test/can_transport_test.cpp
+  src/driver/transport/can_transport.cpp
+)
+
 target_compile_features(driver_test PRIVATE cxx_std_17)
 target_include_directories(driver_test PRIVATE
+  ${CMAKE_CURRENT_SOURCE_DIR}/include
+)
+
+target_compile_features(can_transport_test PRIVATE cxx_std_17)
+target_include_directories(can_transport_test PRIVATE
   ${CMAKE_CURRENT_SOURCE_DIR}/include
 )
 
