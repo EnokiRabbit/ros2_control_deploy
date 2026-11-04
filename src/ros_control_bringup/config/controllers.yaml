@@ -1,44 +1,32 @@
 controller_manager:
   ros__parameters:
     # Overruns on a VM are caused by missing real-time scheduling, not by the
-    # control code: the 200 Hz loop has a 5 ms budget and VM jitter can exceed it.
-    #
-    # Fixes, in order of preference:
-    #
-    # 1) Allow RT priority for the user (persistent):
-    #      /etc/security/limits.d/99-realtime.conf:
-    #        @realtime - rtprio 99
-    #        @realtime - memlock unlimited
-    #      sudo groupadd -f realtime
-    #      sudo usermod -aG realtime $USER
-    #      re-login, then check: ulimit -r   (should print 99)
-    #
-    # 2) Grant the capability to the binary (quick, resets on apt upgrade):
-    #      sudo setcap cap_sys_nice+ep \
-    #        /opt/ros/jazzy/lib/controller_manager/ros2_control_node
-    #
-    # 3) Pin the control process to one CPU:
-    #      taskset -c 2 ros2 launch ros_control_bringup minimal.launch.py
-    #
-    # 4) On the real robot, use a PREEMPT_RT kernel and run at 200 Hz.
-    #
-    # 5) To hide the warnings without fixing jitter (not recommended):
-    #      overruns:
-    #        print_warnings: false
-    #
-    # The VM mock uses 100 Hz so that the same scheduling jitter still fits
-    # inside the 10 ms period.
+    # control code. See the notes in the previous revision of this file:
+    # use 100 Hz on a VM, 200 Hz on the real robot.
     update_rate: 100
 
     joint_state_broadcaster:
       type: joint_state_broadcaster/JointStateBroadcaster
+
     mit_joint_controller:
       type: ros_control_controllers/MitJointController
 
 mit_joint_controller:
   ros__parameters:
     joints:
+      - left_shoulder_pitch_joint
+      - right_shoulder_pitch_joint
+      - left_hip_yaw_joint
+      - left_hip_roll_joint
+      - left_hip_pitch_joint
       - left_knee_joint
+      - left_ankle_pitch_joint
+      - left_ankle_roll_joint
+      - right_hip_yaw_joint
+      - right_hip_roll_joint
+      - right_hip_pitch_joint
       - right_knee_joint
+      - right_ankle_pitch_joint
+      - right_ankle_roll_joint
     command_timeout: 0.5
     damping_kd: 0.0

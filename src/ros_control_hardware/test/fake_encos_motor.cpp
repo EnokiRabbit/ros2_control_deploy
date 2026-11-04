@@ -137,10 +137,11 @@ int main(int argc, char ** argv)
 
   // Simulated motors, keyed by CAN id.
   std::map<std::uint8_t, Motor> motors;
-  motors[4];
-  motors[5];
+  for (std::uint8_t id = 1; id <= 14; ++id) {
+    motors[id];
+  }
 
-  std::printf("fake ENCOS motor on %s, ids 4 and 5\n", interface_name.c_str());
+  std::printf("fake ENCOS motor on %s, ids 1..14\n", interface_name.c_str());
 
   // Main loop: drain the bus, dispatch each command frame to its motor.
   while (true) {

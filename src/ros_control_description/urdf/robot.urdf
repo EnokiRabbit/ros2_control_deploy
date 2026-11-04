@@ -1,0 +1,392 @@
+<?xml version="1.0"?>
+<!-- Generic 14-joint model for the ros2_control deployment stack.
+     No meshes: replace with the real robot model when available.
+     All <param> values below are placeholders; fill in the real
+     bus / can_id / gear_ratio / direction / offset for each motor. -->
+<robot name="robot">
+  <link name="base_link"/>
+
+  <link name="left_shoulder_pitch_link"/>
+  <joint name="left_shoulder_pitch_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="left_shoulder_pitch_link"/>
+    <origin xyz="0 0.2 0.3" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-3.0" upper="1.5" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <link name="right_shoulder_pitch_link"/>
+  <joint name="right_shoulder_pitch_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="right_shoulder_pitch_link"/>
+    <origin xyz="0 -0.2 0.3" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-3.0" upper="1.5" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <link name="left_hip_yaw_link"/>
+  <joint name="left_hip_yaw_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="left_hip_yaw_link"/>
+    <origin xyz="0 0.1 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.8" upper="0.8" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <link name="left_hip_roll_link"/>
+  <joint name="left_hip_roll_joint" type="revolute">
+    <parent link="left_hip_yaw_link"/>
+    <child link="left_hip_roll_link"/>
+    <origin xyz="0 0 -0.05" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-0.2" upper="1.0" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <link name="left_hip_pitch_link"/>
+  <joint name="left_hip_pitch_joint" type="revolute">
+    <parent link="left_hip_roll_link"/>
+    <child link="left_hip_pitch_link"/>
+    <origin xyz="0 0 -0.1" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.5" upper="0.5" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <link name="left_knee_link"/>
+  <joint name="left_knee_joint" type="revolute">
+    <parent link="left_hip_pitch_link"/>
+    <child link="left_knee_link"/>
+    <origin xyz="0 0 -0.3" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.1" upper="2.0" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <link name="left_ankle_pitch_link"/>
+  <joint name="left_ankle_pitch_joint" type="revolute">
+    <parent link="left_knee_link"/>
+    <child link="left_ankle_pitch_link"/>
+    <origin xyz="0 0 -0.3" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.0" upper="1.0" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <link name="left_ankle_roll_link"/>
+  <joint name="left_ankle_roll_joint" type="revolute">
+    <parent link="left_ankle_pitch_link"/>
+    <child link="left_ankle_roll_link"/>
+    <origin xyz="0 0 -0.05" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-0.7" upper="0.7" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <link name="right_hip_yaw_link"/>
+  <joint name="right_hip_yaw_joint" type="revolute">
+    <parent link="base_link"/>
+    <child link="right_hip_yaw_link"/>
+    <origin xyz="0 -0.1 0" rpy="0 0 0"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="-0.8" upper="0.8" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <link name="right_hip_roll_link"/>
+  <joint name="right_hip_roll_joint" type="revolute">
+    <parent link="right_hip_yaw_link"/>
+    <child link="right_hip_roll_link"/>
+    <origin xyz="0 0 -0.05" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-1.0" upper="0.2" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <link name="right_hip_pitch_link"/>
+  <joint name="right_hip_pitch_joint" type="revolute">
+    <parent link="right_hip_roll_link"/>
+    <child link="right_hip_pitch_link"/>
+    <origin xyz="0 0 -0.1" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.5" upper="0.5" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <link name="right_knee_link"/>
+  <joint name="right_knee_joint" type="revolute">
+    <parent link="right_hip_pitch_link"/>
+    <child link="right_knee_link"/>
+    <origin xyz="0 0 -0.3" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-0.1" upper="2.0" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <link name="right_ankle_pitch_link"/>
+  <joint name="right_ankle_pitch_joint" type="revolute">
+    <parent link="right_knee_link"/>
+    <child link="right_ankle_pitch_link"/>
+    <origin xyz="0 0 -0.3" rpy="0 0 0"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.0" upper="1.0" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <link name="right_ankle_roll_link"/>
+  <joint name="right_ankle_roll_joint" type="revolute">
+    <parent link="right_ankle_pitch_link"/>
+    <child link="right_ankle_roll_link"/>
+    <origin xyz="0 0 -0.05" rpy="0 0 0"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-0.7" upper="0.7" effort="100.0" velocity="10.0"/>
+  </joint>
+
+  <ros2_control name="RobotSystem" type="system">
+    <hardware>
+      <plugin>ros_control_hardware/SystemHardware</plugin>
+    </hardware>
+
+    <joint name="left_shoulder_pitch_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">vcan0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">1</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+
+    <joint name="right_shoulder_pitch_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">vcan0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">2</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+
+    <joint name="left_hip_yaw_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">vcan0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">3</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+
+    <joint name="left_hip_roll_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">vcan0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">4</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+
+    <joint name="left_hip_pitch_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">vcan0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">5</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+
+    <joint name="left_knee_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">vcan0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">6</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+
+    <joint name="left_ankle_pitch_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">vcan0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">7</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+
+    <joint name="left_ankle_roll_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">vcan0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">8</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+
+    <joint name="right_hip_yaw_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">vcan0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">9</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+
+    <joint name="right_hip_roll_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">vcan0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">10</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+
+    <joint name="right_hip_pitch_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">vcan0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">11</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+
+    <joint name="right_knee_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">vcan0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">12</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+
+    <joint name="right_ankle_pitch_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">vcan0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">13</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+
+    <joint name="right_ankle_roll_joint">
+      <command_interface name="position"/>
+      <command_interface name="velocity"/>
+      <command_interface name="effort"/>
+      <command_interface name="kp"/>
+      <command_interface name="kd"/>
+      <state_interface name="position"/>
+      <state_interface name="velocity"/>
+      <state_interface name="effort"/>
+
+      <param name="bus">vcan0</param>
+      <param name="motor_type">encos</param>
+      <param name="can_id">14</param>
+      <param name="direction">1.0</param>
+      <param name="gear_ratio">1.0</param>
+      <param name="offset">0.0</param>
+    </joint>
+  </ros2_control>
+</robot>
